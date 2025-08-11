@@ -260,12 +260,10 @@ async def end_roll(ctx):
     guild_player_bonuses = get_guild_player_data(guild_id)
     guild_roll_session = get_guild_roll_session(guild_id)
 
-
     if not guild_roll_session["active"]:
         await ctx.send("No active roll session on this server to end.")
         return
 
-    # Restrict who can end the roll to the initiator
     if str(ctx.author.id) != guild_roll_session["initiator_id"]:
         await ctx.send("Only the person who started the roll can end it.")
         return
@@ -275,7 +273,6 @@ async def end_roll(ctx):
 
     if not participants:
         await ctx.send(f"The roll for **{item_being_rolled_for}** ended with no participants on this server. No winner, no bonus changes.")
-        # Reset current roll session for this guild
         current_roll_sessions_by_guild[guild_id] = {
             "active": False,
             "item": None,
@@ -284,12 +281,9 @@ async def end_roll(ctx):
         }
         return
 
-    # Determine the winner
     winner_id = None
     highest_roll = -1
 
-    # In case of ties, the first person in the sorted list (which is stable) wins.
-    # We sort by final_roll in descending order.
     sorted_participants_list = sorted(participants.items(), key=lambda item: item[1]['final_roll'], reverse=True)
 
     tied_winners = []
@@ -315,7 +309,6 @@ async def end_roll(ctx):
         winner_id = sorted_participants_list[0][0]
 
     winner_user = bot.get_user(int(winner_id))
-    winner_name = winner_user.display_name if winner_user else f"User {winner_id}"
 
     roll_summary_lines = [f"--- Roll Results for **{item_being_rolled_for}** on this server ---"]
     for user_id, data in sorted_participants_list:
@@ -324,10 +317,10 @@ async def end_roll(ctx):
         roll_summary_lines.append(
             f"**{user_name}**: (Base {data['base_roll']} + Bonus {data['bonus_applied']}) = **{data['final_roll']}**"
         )
-    roll_summary_lines.append(f"\n--- **{winner_name}** wins the roll with a **{highest_roll}**! ---")
+    winner_mention = winner_user.mention if winner_user else f"User {winner_id}"
+    roll_summary_lines.append(f"\n--- **{winner_mention}** wins the roll with a **{highest_roll}**! ---")
     await ctx.send("\n".join(roll_summary_lines))
 
-    # Apply bonus logic: winner's bonus resets, others' bonus increases
     bonus_changes_message_lines = ["__Bonus Updates:__"]
     for player_id, data in participants.items():
         user_obj = bot.get_user(int(player_id))
@@ -344,14 +337,13 @@ async def end_roll(ctx):
 
     await ctx.send("\n".join(bonus_changes_message_lines))
 
-    # Reset the current roll session for this guild
     current_roll_sessions_by_guild[guild_id] = {
         "active": False,
         "item": None,
         "initiator_id": None,
         "participants": {}
     }
-    save_player_bonuses() # Save persistent data after every roll
+    save_player_bonuses()
 
 @bot.command()
 async def bonuses(ctx):
