@@ -20,5 +20,7 @@ async def on_ready():
 async def hello(ctx):
     await ctx.send('Hello there!')
 
+# Test
+
 # Replace 'YOUR_BOT_TOKEN_HERE' with the token you copied from the Discord Developer Portal.
 bot.run('MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.GghN-y.DfxKMkzSY4UTL9EzWfxeFLr_aTQ-Ot4DVI3beY')
