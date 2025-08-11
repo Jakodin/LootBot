@@ -5,7 +5,7 @@ import random
 import asyncio
 
 # --- Configuration ---
-TOKEN = 'MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.GghN-y.DfxKMkzSY4UTL9EzWfxeFLr_aTQ-Ot4DVI3beY'
+TOKEN = 'MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.G9AF64.31p5MDhTJKRQNsH8Pn3WfOVg7cinyz9NoM1cSc'
 DATA_FILE = 'player_bonuses.json' # File to store persistent player bonuses
 
 # --- Global Data Structures ---
