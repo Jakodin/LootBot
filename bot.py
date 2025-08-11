@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 import json
 import random
-import asyncio # Used for potential future async operations
+import asyncio
 
 # --- Configuration ---
-TOKEN = 'YOUR_BOT_TOKEN_HERE' # IMPORTANT: Replace with your actual bot token
+TOKEN = 'MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.GghN-y.DfxKMkzSY4UTL9EzWfxeFLr_aTQ-Ot4DVI3beY'
 DATA_FILE = 'player_bonuses.json' # File to store persistent player bonuses
 
 # --- Global Data Structures ---
@@ -28,6 +28,7 @@ current_roll_session = {
 # Sets the intent to allow the bot to read message content.
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True # Required to fetch member data in some cases, especially for `get_user` reliability
 
 # The 'commands.Bot' class is used for bots that have commands.
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -144,6 +145,66 @@ async def join_roll(ctx):
     )
 
 @bot.command()
+async def participants(ctx):
+    """
+    Shows who has joined the current active roll.
+    Usage: !participants
+    """
+    if not current_roll_session["active"]:
+        await ctx.send("There is no active roll session to list participants for.")
+        return
+
+    item = current_roll_session["item"]
+    participants_list = []
+
+    if not current_roll_session["participants"]:
+        await ctx.send(f"No one has joined the roll for **{item}** yet.")
+        return
+
+    for user_id in current_roll_session["participants"]:
+        user = bot.get_user(int(user_id))
+        participants_list.append(user.display_name if user else f"User {user_id} (Unknown)")
+
+    description = f"Current participants for **{item}**:\n" + "\n".join(participants_list)
+    embed = discord.Embed(
+        title="Active Roll Participants",
+        description=description,
+        color=discord.Color.green()
+    )
+    await ctx.send(embed=embed)
+
+
+@bot.command()
+async def remove_participant(ctx, user_to_remove: discord.User):
+    """
+    Removes a user from the current active roll session.
+    Only the roll initiator can use this command.
+    Usage: !remove_participant <@user_mention> or <user_id>
+    Example: !remove_participant @Jakodin
+    """
+    global current_roll_session
+
+    if not current_roll_session["active"]:
+        await ctx.send("No active roll session to remove participants from.")
+        return
+
+    # Check if the command invoker is the roll initiator
+    if str(ctx.author.id) != current_roll_session["initiator_id"]:
+        await ctx.send("🚫 You must be the initiator of this roll to remove participants.")
+        return
+
+    target_user_id = str(user_to_remove.id)
+    target_user_name = user_to_remove.display_name
+
+    if target_user_id not in current_roll_session["participants"]:
+        await ctx.send(f"{target_user_name} is not currently in the roll for **{current_roll_session['item']}**.")
+        return
+
+    del current_roll_session["participants"][target_user_id]
+    await ctx.send(f"✅ {target_user_name} has been removed from the roll for **{current_roll_session['item']}**.")
+
+
+@bot.command()
 async def end_roll(ctx):
     """
     Ends the current active rolling session, determines the winner,
@@ -156,10 +217,10 @@ async def end_roll(ctx):
         await ctx.send("No active roll session to end.")
         return
 
-    # Optional: Restrict who can end the roll to the initiator
-    # if str(ctx.author.id) != current_roll_session["initiator_id"]:
-    #     await ctx.send("Only the person who started the roll can end it.")
-    #     return
+    # Restrict who can end the roll to the initiator
+    if str(ctx.author.id) != current_roll_session["initiator_id"]:
+        await ctx.send("Only the person who started the roll can end it.")
+        return
 
     item_being_rolled_for = current_roll_session["item"]
     participants = current_roll_session["participants"]
@@ -178,76 +239,58 @@ async def end_roll(ctx):
     winner_id = None
     highest_roll = -1
 
-    roll_summary = f"--- Roll Results for **{item_being_rolled_for}** ---\n"
-    sorted_participants = sorted(participants.items(), key=lambda item: item[1]['final_roll'], reverse=True)
+    # In case of ties, the first person in the sorted list (which is stable) wins.
+    # We sort by final_roll in descending order.
+    sorted_participants_list = sorted(participants.items(), key=lambda item: item[1]['final_roll'], reverse=True)
 
-    for user_id, data in sorted_participants:
-        user = bot.get_user(int(user_id))
-        user_name = user.display_name if user else f"User {user_id}"
-        roll_summary += (
-            f"**{user_name}**: (Base {data['base_roll']} + Bonus {data['bonus_applied']}) = **{data['final_roll']}**\n"
-        )
-        if data['final_roll'] > highest_roll:
-            highest_roll = data['final_roll']
-            winner_id = user_id
-        # Tie-breaking: If multiple players have the same highest roll, the first one encountered in the sorted list wins.
+    # Initialize a list for ties if you want to report them
+    tied_winners = []
+
+    if sorted_participants_list:
+        highest_roll = sorted_participants_list[0][1]['final_roll']
+        for user_id, data in sorted_participants_list:
+            if data['final_roll'] == highest_roll:
+                tied_winners.append(user_id)
+            else:
+                break # All higher rolls are already processed
+
+    # If there's a tie, randomly select one winner from the tied group
+    if len(tied_winners) > 1:
+        winner_id = random.choice(tied_winners)
+        tie_message = "It's a tie! Randomly picking a winner from: "
+        tied_names = []
+        for tied_id in tied_winners:
+            user_obj = bot.get_user(int(tied_id))
+            tied_names.append(user_obj.display_name if user_obj else f"User {tied_id}")
+        tie_message += ", ".join(tied_names) + "\n"
+        await ctx.send(tie_message)
+    else:
+        winner_id = sorted_participants_list[0][0] # Only one clear winner
 
     winner_user = bot.get_user(int(winner_id))
     winner_name = winner_user.display_name if winner_user else f"User {winner_id}"
 
-    roll_summary += f"\n--- **{winner_name}** wins the roll with a **{highest_roll}**! ---\n\n"
-    await ctx.send(roll_summary)
+    roll_summary_lines = [f"--- Roll Results for **{item_being_rolled_for}** ---"]
+    for user_id, data in sorted_participants_list:
+        user = bot.get_user(int(user_id))
+        user_name = user.display_name if user else f"User {user_id}"
+        roll_summary_lines.append(
+            f"**{user_name}**: (Base {data['base_roll']} + Bonus {data['bonus_applied']}) = **{data['final_roll']}**"
+        )
+    roll_summary_lines.append(f"\n--- **{winner_name}** wins the roll with a **{highest_roll}**! ---")
+    await ctx.send("\n".join(roll_summary_lines))
 
     # Apply bonus logic: winner's bonus resets, others' bonus increases
-    bonus_changes_message = "__Bonus Updates:__\n"
+    bonus_changes_message_lines = ["__Bonus Updates:__"]
     for player_id, data in participants.items():
+        user_obj = bot.get_user(int(player_id))
+        player_name = user_obj.display_name if user_obj else f"User {player_id}"
+
         if player_id == winner_id:
-            # Winner's bonus resets
             player_bonuses[player_id]["bonus"] = 0
-            # Also update last_roll_item for the winner
             player_bonuses[player_id]["last_roll_item"] = item_being_rolled_for
-            bonus_changes_message += f"**{winner_name}**: Bonus reset to `0`.\n"
+            bonus_changes_message_lines.append(f"**{player_name}**: Bonus reset to `0`.")
         else:
-            # Others' bonus increases
             player_bonuses[player_id]["bonus"] += 1
-            # Update last_roll_item for participants even if they didn't win
             player_bonuses[player_id]["last_roll_item"] = item_being_rolled_for
-            user_obj = bot.get_user(int(player_id))
-            player_name = user_obj.display_name if user_obj else f"User {player_id}"
-            bonus_changes_message += f"**{player_name}**: Bonus increased to `+{player_bonuses[player_id]['bonus']}`.\n"
-
-    await ctx.send(bonus_changes_message)
-
-    # Reset the current roll session
-    current_roll_session = {
-        "active": False,
-        "item": None,
-        "initiator_id": None,
-        "participants": {}
-    }
-    save_player_bonuses() # Save persistent data after every roll
-
-@bot.command()
-async def bonuses(ctx):
-    """
-    Displays the current persistent bonuses for all players.
-    """
-    if not player_bonuses:
-        await ctx.send("No players have rolled yet, so no bonuses to display!")
-        return
-
-    bonus_list = []
-    for user_id, data in player_bonuses.items():
-        user = bot.get_user(int(user_id))
-        user_name = user.display_name if user else f"User {user_id} (Left Guild?)"
-        bonus_list.append(f"**{user_name}**: `+{data['bonus']}` (Last roll for: {data['last_roll_item'] or 'N/A'})")
-
-    embed = discord.Embed(
-        title="Current Player Bonuses",
-        description="\n".join(bonus_list) if bonus_list else "No bonuses to display yet.",
-        color=discord.Color.blue()
-    )
-    await ctx.send(embed=embed)
-
-# --- Run the Bot ---
-bot.run(TOKEN)
+            bonus_changes_message_lines.append(f"
