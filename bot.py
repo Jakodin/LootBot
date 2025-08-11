@@ -381,41 +381,5 @@ async def bonuses(ctx):
         color=discord.Color.blue()
     )
     await ctx.send(embed=embed)
-
-@bot.command()
-async def help(ctx, command_name: str = None):
-    """
-    Shows information about bot commands.
-    Usage: !help (shows all commands) or !help <command_name> (shows specific command info)
-    """
-    if command_name:
-        # Show help for a specific command
-        command = bot.get_command(command_name)
-        if command:
-            help_text = f"**Command: !{command.name}**\n"
-            help_text += f"Description: {command.help or 'No description provided.'}\n"
-            if command.usage:
-                help_text += f"Usage: {command.usage}\n" # Assuming you add 'usage' to commands
-            else:
-                help_text += f"Usage: !{command.name} {command.signature.replace('ctx, ', '')}\n" # Generates usage from signature
-            embed = discord.Embed(title=f"Help for {command.name}", description=help_text, color=discord.Color.blue())
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send(f"Command `!{command_name}` not found.")
-    else:
-        # Show all commands
-        commands_description = []
-        for command in bot.commands:
-            commands_description.append(f"**!{command.name}**: {command.help or 'No description.'}")
-        
-        embed = discord.Embed(
-            title="Available Commands",
-            description="\n".join(commands_description),
-            color=discord.Color.gold()
-        )
-        embed.set_footer(text="Type !help <command> for more info on a specific command.")
-        await ctx.send(embed=embed)
-
-
 # --- Run the Bot ---
 bot.run(TOKEN)
