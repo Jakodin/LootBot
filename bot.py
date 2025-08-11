@@ -293,4 +293,40 @@ async def end_roll(ctx):
         else:
             player_bonuses[player_id]["bonus"] += 1
             player_bonuses[player_id]["last_roll_item"] = item_being_rolled_for
-            bonus_changes_message_lines.append(f"
+            bonus_changes_message_lines.append(f"**{player_name}**: Bonus increased to `+{player_bonuses[player_id]['bonus']}`.")
+
+    await ctx.send("\n".join(bonus_changes_message_lines))
+
+    # Reset the current roll session
+    current_roll_session = {
+        "active": False,
+        "item": None,
+        "initiator_id": None,
+        "participants": {}
+    }
+    save_player_bonuses() # Save persistent data after every roll
+
+@bot.command()
+async def bonuses(ctx):
+    """
+    Displays the current persistent bonuses for all players.
+    """
+    if not player_bonuses:
+        await ctx.send("No players have rolled yet, so no bonuses to display!")
+        return
+
+    bonus_list = []
+    for user_id, data in player_bonuses.items():
+        user = bot.get_user(int(user_id))
+        user_name = user.display_name if user else f"User {user_id} (Left Server?)" # More descriptive message
+        bonus_list.append(f"**{user_name}**: `+{data['bonus']}` (Last roll for: {data['last_roll_item'] or 'N/A'})")
+
+    embed = discord.Embed(
+        title="Current Player Bonuses",
+        description="\n".join(bonus_list) if bonus_list else "No bonuses to display yet.",
+        color=discord.Color.blue()
+    )
+    await ctx.send(embed=embed)
+
+# --- Run the Bot ---
+bot.run(TOKEN)
