@@ -3,7 +3,7 @@
         "180018724978294784": {
             "107171787057426432": {
                 "bonus": 0,
-                "last_roll_item": "Random Item of Boredom"
+                "last_roll_item": "item #2"
             },
             "159409940258226177": {
                 "bonus": 0,
@@ -11,5 +11,5 @@
             }
         }
     },
-    "next_roll_id": 3
+    "next_roll_id": 5
 }
