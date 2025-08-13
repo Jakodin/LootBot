@@ -102,6 +102,16 @@ async def hello(ctx):
     await ctx.send('Hello there!')
 
 @bot.command()
+async def rigged(ctx):
+    """
+    Reassures users that the bot is not rigged.
+    """
+    if str(ctx.author.id) == "107171787057426432":
+        await ctx.send("Yes, the bot is rigged against you, good luck winning")
+    else:
+        await ctx.send("The bot is not rigged, you're just unlucky!")
+
+@bot.command()
 async def start_roll(ctx, *, item_being_rolled_for: str):
     """
     Starts a new rolling session for a specific item on this server.
@@ -380,42 +390,5 @@ async def bonuses(ctx):
         color=discord.Color.blue()
     )
     await ctx.send(embed=embed)
-
-@bot.command()
-async def active_rolls(ctx):
-    """
-    Lists all currently active roll sessions on this server.
-    Usage: !active_rolls
-    """
-    if not ctx.guild:
-        await ctx.send("This command can only be used in a server.")
-        return
-
-    guild_id = str(ctx.guild.id)
-    guild_roll_sessions = get_guild_roll_sessions(guild_id)
-
-    if not guild_roll_sessions:
-        await ctx.send("There are no active roll sessions on this server.")
-        return
-
-    roll_summary_lines = [f"**Active Roll Sessions for {ctx.guild.name}**"]
-    for session in guild_roll_sessions:
-        item = session['item']
-        roll_id = session['roll_id']
-        participants_count = len(session['participants'])
-        initiator = bot.get_user(int(session['initiator_id']))
-        initiator_name = initiator.display_name if initiator else "Unknown"
-
-        roll_summary_lines.append(
-            f"**- ID `{roll_id}`** for **`{item}`** (by {initiator_name}) with {participants_count} participants."
-        )
-
-    embed = discord.Embed(
-        title="Active Roll Sessions",
-        description="\n".join(roll_summary_lines),
-        color=discord.Color.purple()
-    )
-    await ctx.send(embed=embed)
-
 # --- Run the Bot ---
 bot.run(TOKEN)
