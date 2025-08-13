@@ -99,6 +99,16 @@ async def hello(ctx):
     await ctx.send('Hello there!')
 
 @bot.command()
+async def rigged(ctx):
+    """
+    Reassures users that the bot is not rigged.
+    """
+    if str(ctx.author.id) == "107171787057426432":
+        await ctx.send("Yes, the bot is rigged against you, good luck winning")
+    else:
+        await ctx.send("The bot is not rigged, you're just unlucky!")
+
+@bot.command()
 async def start_roll(ctx, *, item_being_rolled_for: str):
     """
     Starts a new rolling session for a specific item on this server.
@@ -373,5 +383,6 @@ async def bonuses(ctx):
         color=discord.Color.blue()
     )
     await ctx.send(embed=embed)
+
 # --- Run the Bot ---
 bot.run(TOKEN)
