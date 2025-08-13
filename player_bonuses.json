@@ -1,22 +1,15 @@
 {
-    "258918326418276363": {
-        "159409940258226177": {
-            "bonus": 0,
-            "last_roll_item": "blabla"
-        },
-        "107171787057426432": {
-            "bonus": 3,
-            "last_roll_item": "blabla"
+    "bonuses": {
+        "180018724978294784": {
+            "107171787057426432": {
+                "bonus": 0,
+                "last_roll_item": "Random Item of Boredom"
+            },
+            "159409940258226177": {
+                "bonus": 0,
+                "last_roll_item": "Random Item of Awesomeness"
+            }
         }
     },
-    "180018724978294784": {
-        "159409940258226177": {
-            "bonus": 0,
-            "last_roll_item": "rng item"
-        },
-        "107171787057426432": {
-            "bonus": 1,
-            "last_roll_item": "rng item"
-        }
-    }
+    "next_roll_id": 3
 }
