@@ -9,21 +9,7 @@
                 "bonus": 0,
                 "last_roll_item": "Random Item of Awesomeness"
             }
-        },
-        "258918326418276363": {
-            "107171787057426432": {
-                "bonus": 1,
-                "last_roll_item": "The Cool Item"
-            },
-            "159409940258226177": {
-                "bonus": 2,
-                "last_roll_item": "The Cool Item"
-            },
-            "202952317006381056": {
-                "bonus": 0,
-                "last_roll_item": "The Cool Item"
-            }
         }
     },
-    "next_roll_id": 9
+    "next_roll_id": 1
 }
