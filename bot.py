@@ -6,7 +6,7 @@ import os
 
 # --- Configuration ---
 # IMPORTANT: Replace 'YOUR_BOT_TOKEN_HERE' with your actual bot token.
-TOKEN = os.environ.get('DISCORD_TOKEN', 'MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.G9AF64.31p5MDhTJKRQNsH8Pn3WfOVg7cinyz9NoM1cSc')
+TOKEN = os.environ.get('DISCORD_TOKEN')
 DATA_FILE = 'player_bonuses.json'
 
 # --- Global Data Structures ---
