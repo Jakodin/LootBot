@@ -5,24 +5,12 @@ import random
 import os
 
 # --- Configuration ---
-# IMPORTANT: Replace 'YOUR_BOT_TOKEN_HERE' with your actual bot token.
 TOKEN = os.environ.get('DISCORD_TOKEN')
 DATA_FILE = 'player_bonuses.json'
 
 # --- Global Data Structures ---
-
-# This dictionary will hold our PERMANENT player bonus data in memory.
-# Key: Discord Guild ID (string)
-# Value: Dictionary {User ID (string): {"bonus": int, "last_roll_item": string}}
 player_bonuses_by_guild = {}
-
-# This dictionary will hold TEMPORARY data for currently active roll sessions.
-# Key: Discord Guild ID (string)
-# Value: List of dictionaries, each representing a single roll session.
 current_roll_sessions_by_guild = {}
-
-# This counter ensures each new roll gets a unique ID across the bot's lifetime.
-# This will be loaded from and saved to the data file.
 next_roll_id = 1
 
 # --- Discord Bot Setup ---
@@ -31,8 +19,6 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
-
-# --- Helper Functions for Data Persistence ---
 
 def load_player_bonuses():
     """Loads player bonuses and the roll ID counter from the JSON file."""
@@ -90,7 +76,7 @@ async def on_ready():
 
 @bot.event
 async def on_disconnect():
-    """Event that runs when the bot disconnects, ensuring data is saved."""
+    """Event that runs when the bot disconnects"""
     print("Bot disconnecting, saving data...")
     save_player_bonuses()
 
@@ -273,7 +259,6 @@ async def end_roll(ctx, roll_id: int):
     guild_player_bonuses = get_guild_player_data(guild_id)
     guild_roll_sessions = get_guild_roll_sessions(guild_id)
 
-    # Find the specific roll session by its ID
     target_session = next((session for session in guild_roll_sessions if session["roll_id"] == roll_id), None)
 
     if not target_session:
@@ -348,7 +333,6 @@ async def end_roll(ctx, roll_id: int):
 
     await ctx.send("\n".join(bonus_changes_message_lines))
 
-    # Remove the completed roll session from the list
     guild_roll_sessions.remove(target_session)
     save_player_bonuses()
 
