@@ -8,7 +8,7 @@ import os # Added for environment variables in case you use Replit
 # --- Configuration ---
 # IMPORTANT: Replace 'YOUR_BOT_TOKEN_HERE' with your actual bot token.
 # If you're using Replit, use os.environ['DISCORD_TOKEN'] as discussed before.
-TOKEN = os.environ.get('DISCORD_TOKEN', 'MTQwNDQ1NTA0NTQ2MTgzNTg3OQ.G9AF64.31p5MDhTJKRQNsH8Pn3WfOVg7cinyz9NoM1cSc')
+TOKEN = os.environ.get('DISCORD_TOKEN')
 DATA_FILE = 'player_bonuses.json' # File to store persistent player bonuses
 
 # --- Global Data Structures ---
