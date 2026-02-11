@@ -1,10 +1,12 @@
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
 import json
 import random
 import os
 
 # --- Configuration ---
+load_dotenv()
 TOKEN = os.environ.get('DISCORD_TOKEN')
 DATA_FILE = 'player_bonuses.json'
 
